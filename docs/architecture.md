@@ -14,6 +14,8 @@ Creator AI Studio is split into independent modules so the MVP can start small a
 
 `packages/database` contains the initial Prisma schema for PostgreSQL.
 
+`packages/shared/src/ai-engine.ts` owns AI agent definitions, structured-output schemas, prompt contracts, brand memory, and regression cases.
+
 ## Core modules
 
 - Brand Manager: workspace-scoped brand identity, tone, rules, platforms, and automation level
@@ -25,6 +27,7 @@ Creator AI Studio is split into independent modules so the MVP can start small a
 - Publishing Engine: OAuth, drafts, scheduling, publishing, retries, and status history
 - Analytics Engine: platform metrics and post-level performance
 - Learning Engine: recommendations generated from performance data
+- AI Orchestrator: agent sequencing, structured-output gates, cost control, risk gates, logs, and human validation decisions
 
 ## Safety defaults
 

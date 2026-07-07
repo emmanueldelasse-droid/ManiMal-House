@@ -56,9 +56,16 @@ import {
   type QualityScoreInput
 } from "@creator-ai-studio/shared";
 import {
+  aiAgents,
+  aiDecisions,
+  aiLogs,
+  aiPlanSteps,
+  aiPrompts,
+  aiSchemas,
   analyticsRows,
   apiKeys,
   brand,
+  brandMemory,
   calendarItems,
   costs,
   dashboardTasks,
@@ -71,6 +78,7 @@ import {
   previewImage,
   project,
   publicationItems,
+  regressionCases,
   socialAccounts,
   studioAssets,
   topStats,
@@ -94,6 +102,7 @@ const desktopNavigation: Array<{ page: StudioPage; label: string; icon: React.El
   { page: "music", label: "Bibliothèque musique", icon: Music2 },
   { page: "publications", label: "Publications", icon: Send },
   { page: "analytics", label: "Analytics", icon: BarChart3 },
+  { page: "ai-engine", label: "Moteur IA", icon: Brain },
   { page: "learnings", label: "Apprentissages IA", icon: Brain },
   { page: "costs", label: "Coûts", icon: WalletCards },
   { page: "social", label: "Connexions sociales", icon: ShieldCheck },
@@ -261,6 +270,7 @@ export function StudioShell() {
             {activePage === "music" && <MusicScreen />}
             {activePage === "publications" && <PublicationsScreen onNavigate={go} />}
             {activePage === "analytics" && <AnalyticsScreen />}
+            {activePage === "ai-engine" && <AiEngineScreen />}
             {activePage === "learnings" && <LearningsScreen />}
             {activePage === "costs" && <CostsScreen />}
             {activePage === "social" && <SocialScreen />}
@@ -1321,6 +1331,176 @@ function AnalyticsScreen() {
   );
 }
 
+function AiEngineScreen() {
+  const schemaKeys = Object.keys(aiSchemas);
+  const totalEstimatedAiCost = aiLogs.reduce((total, log) => total + log.estimatedCostCents, 0);
+
+  return (
+    <ScreenFrame
+      action={<button className="btn-primary" type="button">Lancer un cycle mock</button>}
+      eyebrow="Agents, prompts, JSON et garde-fous"
+      title="Moteur IA"
+    >
+      <MetricGrid
+        stats={[
+          { label: "Agents", value: `${aiAgents.length}`, detail: "18 rôles spécialisés" },
+          { label: "Phase MVP", value: "1", detail: "7 agents actifs" },
+          { label: "Schemas", value: `${schemaKeys.length}`, detail: "JSON structurés" },
+          { label: "Coût logs", value: money(totalEstimatedAiCost), detail: "cycle courant" },
+          { label: "Autopilot", value: "Off", detail: "validation humaine" }
+        ]}
+      />
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+        <Panel title="Orchestrateur" eyebrow="Plan de génération">
+          <div className="space-y-3">
+            {aiPlanSteps.map((step) => (
+              <div key={step.id} className="rounded-lg border border-line bg-night p-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">{step.label}</p>
+                    <p className="mt-1 text-xs text-smoke">{step.agentId}</p>
+                  </div>
+                  <AgentStatusBadge status={step.status} />
+                </div>
+                <div className="mt-3 grid gap-2 md:grid-cols-3">
+                  <InfoLine label="Dépend de" value={step.dependsOn.length ? step.dependsOn.join(", ") : "départ"} />
+                  <InfoLine label="Coût estimé" value={money(step.estimatedCostCents)} />
+                  <InfoLine label="Validation" value={step.humanValidationRequired ? "humaine" : "auto"} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Décisions" eyebrow="Ce qui bloque ou autorise">
+          <div className="space-y-3">
+            {aiDecisions.map((decision) => (
+              <div key={decision.id} className="rounded-lg border border-line bg-night p-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">{decision.decision}</p>
+                  <DecisionBadge status={decision.status} />
+                </div>
+                <p className="mt-2 text-xs text-gold">{decision.agentId}</p>
+                <p className="mt-2 text-sm leading-6 text-smoke">{decision.reason}</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_1fr]">
+        <Panel title="Agents par phase" eyebrow="Pas de prompt unique géant">
+          <div className="space-y-4">
+            {[1, 2, 3, 4].map((phase) => (
+              <div key={phase} className="rounded-lg border border-line bg-night p-3">
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">Phase {phase}</p>
+                  <span className="text-xs text-smoke">
+                    {aiAgents.filter((agent) => agent.phase === phase).length} agents
+                  </span>
+                </div>
+                <div className="grid gap-2 md:grid-cols-2">
+                  {aiAgents
+                    .filter((agent) => agent.phase === phase)
+                    .map((agent) => (
+                      <div key={agent.id} className="rounded-lg border border-line bg-ink p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-semibold">{agent.name}</p>
+                            <p className="mt-1 text-xs text-smoke">{agent.id}</p>
+                          </div>
+                          {agent.canBlockPublication && (
+                            <span className="rounded-md border border-rose/40 bg-rose/10 px-2 py-1 text-xs text-rose">
+                              gate
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-2 line-clamp-3 text-xs leading-5 text-smoke">{agent.role}</p>
+                        <p className="mt-2 text-xs text-mint">
+                          JSON: {agent.structuredOutputRequired ? "required" : "optional"}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Prompts et schemas" eyebrow="Structured outputs">
+          <div className="space-y-3">
+            {aiPrompts.map((prompt) => (
+              <div key={prompt.agentId} className="rounded-lg border border-line bg-night p-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">{prompt.agentId}</p>
+                  <span className="rounded-md border border-mint/40 bg-mint/10 px-2 py-1 text-xs text-mint">
+                    {prompt.outputSchemaKey}
+                  </span>
+                </div>
+                <p className="mt-2 line-clamp-3 text-xs leading-5 text-smoke">{prompt.systemPrompt}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {prompt.safetyNotes.map((note) => (
+                    <Tag key={note}>{note}</Tag>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.85fr]">
+        <Panel title="Mémoire Paris House" eyebrow="Ce que l'IA doit retenir">
+          <div className="grid gap-4 md:grid-cols-2">
+            <MemoryList title="Winning patterns" items={brandMemory.winningPatterns} />
+            <MemoryList title="Losing patterns" items={brandMemory.losingPatterns} danger />
+            <MemoryList title="Règles actives" items={brandMemory.activeRules} />
+            <MemoryList title="Raisons de refus" items={brandMemory.refusedContentReasons} danger />
+          </div>
+        </Panel>
+
+        <Panel title="Tests IA" eyebrow="Non-régression prompts">
+          <div className="space-y-3">
+            {regressionCases.map((testCase) => (
+              <div key={testCase.id} className="rounded-lg border border-line bg-night p-3">
+                <p className="text-sm font-semibold">{testCase.title}</p>
+                <p className="mt-2 text-xs leading-5 text-smoke">{testCase.contentSummary}</p>
+                <div className="mt-3 grid gap-2 md:grid-cols-2">
+                  <div>
+                    <p className="text-xs uppercase text-mint">Attendu</p>
+                    <TokenList tokens={testCase.expectedSignals} />
+                  </div>
+                  <div>
+                    <p className="text-xs uppercase text-rose">Interdit</p>
+                    <TokenList danger tokens={testCase.forbiddenSignals} />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <Panel className="mt-4" title="Logs IA" eyebrow="Traçabilité">
+        <DataTable
+          columns={["Agent", "Modèle", "Statut", "Entrée", "Sortie", "Schema", "Coût", "Durée"]}
+          rows={aiLogs.map((log) => [
+            log.agentId,
+            log.model,
+            <AgentStatusBadge key="status" status={log.status} />,
+            log.inputSummary,
+            log.outputSummary,
+            log.schemaKey,
+            money(log.estimatedCostCents),
+            `${log.durationMs} ms`
+          ])}
+        />
+      </Panel>
+    </ScreenFrame>
+  );
+}
+
 function LearningsScreen() {
   return (
     <ScreenFrame eyebrow="Mémoire IA" title="Apprentissages">
@@ -1631,6 +1811,64 @@ function TaskBadge({ status }: { status: DashboardTaskStatus }) {
 
 function StatusBadge({ status }: { status: ContentLifecycleStatus }) {
   return <span className={clsx("badge", statusStyles[status])}>{statusLabels[status]}</span>;
+}
+
+function AgentStatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={clsx(
+        "badge capitalize",
+        status === "complete" && "border-mint/40 bg-mint/12 text-mint",
+        status === "running" && "border-gold/40 bg-gold/12 text-gold",
+        status === "queued" && "border-line bg-line/50 text-smoke",
+        status === "needs_human_validation" && "border-gold/40 bg-gold/12 text-gold",
+        status === "blocked" && "border-rose/40 bg-rose/12 text-rose",
+        status === "failed" && "border-rose/40 bg-rose/12 text-rose",
+        status === "skipped" && "border-line bg-night text-smoke"
+      )}
+    >
+      {status.replaceAll("_", " ")}
+    </span>
+  );
+}
+
+function DecisionBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={clsx(
+        "badge",
+        status === "accepted" && "border-mint/40 bg-mint/12 text-mint",
+        status === "needs_human_validation" && "border-gold/40 bg-gold/12 text-gold",
+        status === "blocked" && "border-rose/40 bg-rose/12 text-rose",
+        status === "retry" && "border-[#8fd3ff]/40 bg-[#8fd3ff]/12 text-[#8fd3ff]"
+      )}
+    >
+      {status.replaceAll("_", " ")}
+    </span>
+  );
+}
+
+function MemoryList({
+  danger,
+  items,
+  title
+}: {
+  danger?: boolean;
+  items: string[];
+  title: string;
+}) {
+  return (
+    <div className="rounded-lg border border-line bg-night p-3">
+      <p className="text-sm font-semibold">{title}</p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {items.map((item) => (
+          <Tag key={item} danger={danger ?? false}>
+            {item}
+          </Tag>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 function CalendarStrip({ onNavigate }: { onNavigate: (page: StudioPage) => void }) {

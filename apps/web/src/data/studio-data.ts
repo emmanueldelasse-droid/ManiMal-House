@@ -1,9 +1,17 @@
 import {
+  aiAgentDefinitions,
+  aiPromptDefinitions,
+  aiRegressionCases,
+  aiStructuredOutputSchemas,
+  aiWorkflowStages,
   calculateQualityScore,
   dailyWorkflow,
+  parisHouseBrandMemory,
   parisHouseBrand,
   sampleIdeas,
   sampleProject,
+  type AiAgentRunLog,
+  type AiOrchestrationDecision,
   type CostEntry,
   type Learning,
   type MusicTrack,
@@ -172,6 +180,7 @@ export type StudioPage =
   | "music"
   | "publications"
   | "analytics"
+  | "ai-engine"
   | "learnings"
   | "costs"
   | "social"
@@ -542,6 +551,103 @@ export const apiKeys: ApiKeyStatus[] = [
   { id: "key_runway", provider: "Runway", maskedKey: "rw-...11Qa", status: "missing", lastChecked: "Never" },
   { id: "key_kling", provider: "Kling", maskedKey: "kl-...44Rt", status: "missing", lastChecked: "Never" },
   { id: "key_eleven", provider: "ElevenLabs", maskedKey: "el-...73Mv", status: "invalid", lastChecked: "Yesterday" }
+];
+
+export const aiAgents = aiAgentDefinitions;
+export const aiPrompts = aiPromptDefinitions;
+export const aiSchemas = aiStructuredOutputSchemas;
+export const aiPlanSteps = aiWorkflowStages;
+export const brandMemory = parisHouseBrandMemory;
+export const regressionCases = aiRegressionCases;
+
+export const aiDecisions: AiOrchestrationDecision[] = [
+  {
+    id: "decision_video_gate",
+    agentId: "cost_control",
+    decision: "Video generation stays blocked until idea and script are validated.",
+    reason: "Tome 3 forbids expensive generation without approved creative inputs and available budget.",
+    status: "needs_human_validation"
+  },
+  {
+    id: "decision_music_rights",
+    agentId: "music_matching",
+    decision: "Use Rooftop Warmup 122 for final export.",
+    reason: "It is the only track currently marked approved for publication.",
+    status: "accepted"
+  },
+  {
+    id: "decision_no_voice",
+    agentId: "voice",
+    decision: "No voiceover recommended.",
+    reason: "Paris House should keep the music and atmosphere dominant for this concept.",
+    status: "accepted"
+  },
+  {
+    id: "decision_human_review",
+    agentId: "quality_scoring",
+    decision: "Human validation required before publication.",
+    reason: "The global score is below 85 and Instagram connection still needs reauthorization.",
+    status: "needs_human_validation"
+  }
+];
+
+export const aiLogs: AiAgentRunLog[] = [
+  {
+    id: "ai_log_brand",
+    agentId: "brand_strategist",
+    model: "mock-structured-output-model",
+    status: "complete",
+    inputSummary: "Paris House brand settings and editorial rules",
+    outputSummary: "Operational brand brief generated with preferred hooks and safety rules.",
+    schemaKey: "brandBrief",
+    estimatedCostCents: 8,
+    durationMs: 410,
+    contentProjectId: project.id,
+    userId: "user_demo",
+    createdAt: "2026-07-07T08:00:00.000Z"
+  },
+  {
+    id: "ai_log_ideas",
+    agentId: "idea_generation",
+    model: "mock-structured-output-model",
+    status: "complete",
+    inputSummary: "Brand brief, memory, budget, Instagram Reels target",
+    outputSummary: "Five differentiated concepts requested, three visible in the MVP queue.",
+    schemaKey: "ideas",
+    estimatedCostCents: 22,
+    durationMs: 780,
+    contentProjectId: project.id,
+    userId: "user_demo",
+    createdAt: "2026-07-07T08:15:00.000Z"
+  },
+  {
+    id: "ai_log_quality",
+    agentId: "quality_scoring",
+    model: "mock-structured-output-model",
+    status: "needs_human_validation",
+    inputSummary: "Blue hour rooftop pulse storyboard and asset plan",
+    outputSummary: "Score is publishable with human validation; scene 2 should be shorter.",
+    schemaKey: "qualityScore",
+    estimatedCostCents: 10,
+    durationMs: 520,
+    contentProjectId: project.id,
+    userId: "user_demo",
+    createdAt: "2026-07-07T11:00:00.000Z"
+  },
+  {
+    id: "ai_log_cost",
+    agentId: "cost_control",
+    model: "mock-structured-output-model",
+    status: "blocked",
+    inputSummary: "Requested video generation with provider fallback",
+    outputSummary: "Blocked until idea, script, budget, provider, and human validation are aligned.",
+    schemaKey: "costCheck",
+    estimatedCostCents: 2,
+    durationMs: 160,
+    contentProjectId: project.id,
+    userId: "user_demo",
+    createdAt: "2026-07-07T11:10:00.000Z"
+  }
 ];
 
 export const onboardingSteps = [
