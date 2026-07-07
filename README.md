@@ -9,7 +9,7 @@ The first demo brand is Paris House: house music, Paris nightlife, rooftops, pre
 - Next.js studio interface in `apps/web`
 - TypeScript API skeleton in `apps/api`
 - Shared domain types and scoring logic in `packages/shared`
-- Product, architecture, workflow, UX, and AI engine notes in `docs`
+- Product, architecture, workflow, UX, AI engine, and integration notes in `docs`
 - Provider adapter contracts for LLM, video, voice, and publishing workflows
 
 ## Requirements
@@ -56,5 +56,9 @@ The web app now includes a navigable MVP product prototype covering onboarding, 
 ## AI engine
 
 The repository includes the Tome 3 AI engine foundation: specialized agent contracts, structured-output schemas, prompt definitions, Paris House memory, AI regression cases, and a mock orchestrator with logs and runtime gates. See `docs/ai-engine.md`.
+
+## Integrations
+
+The repository includes the Tome 4 integration foundation: provider adapter contracts, standardized errors, retry and fallback policies, queues, webhooks, OAuth connection models, storage paths, monitoring alerts, and a provider registry. See `docs/integrations.md`.
 
 Automatic social publishing, payments, full multi-user SaaS workflows, and autopilot are intentionally out of scope for the first slice.

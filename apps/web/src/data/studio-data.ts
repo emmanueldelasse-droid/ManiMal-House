@@ -4,10 +4,19 @@ import {
   aiRegressionCases,
   aiStructuredOutputSchemas,
   aiWorkflowStages,
+  backendRoutes,
   calculateQualityScore,
   dailyWorkflow,
+  defaultRetryPolicy,
+  defaultVideoFallbackPolicy,
+  envRequirements,
+  integrationPhases,
+  integrationSequences,
+  monitoringAlerts,
   parisHouseBrandMemory,
   parisHouseBrand,
+  providerRegistry,
+  queueDefinitions,
   sampleIdeas,
   sampleProject,
   type AiAgentRunLog,
@@ -184,6 +193,7 @@ export type StudioPage =
   | "learnings"
   | "costs"
   | "social"
+  | "integrations"
   | "settings";
 
 export type StudioStep =
@@ -647,6 +657,76 @@ export const aiLogs: AiAgentRunLog[] = [
     contentProjectId: project.id,
     userId: "user_demo",
     createdAt: "2026-07-07T11:10:00.000Z"
+  }
+];
+
+export const integrationProviders = providerRegistry;
+export const integrationQueues = queueDefinitions;
+export const integrationBackendRoutes = backendRoutes;
+export const integrationEnvRequirements = envRequirements;
+export const integrationMonitoringAlerts = monitoringAlerts;
+export const integrationRoadmap = integrationPhases;
+export const integrationSequencesData = integrationSequences;
+export const retryPolicy = defaultRetryPolicy;
+export const videoFallbackPolicy = defaultVideoFallbackPolicy;
+
+export const integrationJobs = [
+  {
+    id: "job_video_mock",
+    queue: "video-generation-queue",
+    provider: "mock",
+    status: "succeeded",
+    progress: 100,
+    attempts: "1/3",
+    detail: "Mock text-to-video returned a local draft asset."
+  },
+  {
+    id: "job_edit_preview",
+    queue: "editing-queue",
+    provider: "ffmpeg",
+    status: "running",
+    progress: 62,
+    attempts: "1/3",
+    detail: "Preview assembly with text overlays and approved music."
+  },
+  {
+    id: "job_publish_instagram",
+    queue: "publishing-queue",
+    provider: "instagram",
+    status: "pending",
+    progress: 0,
+    attempts: "0/3",
+    detail: "Waiting for Meta reauthorization and human validation."
+  }
+];
+
+export const webhookEvents = [
+  {
+    id: "webhook_runway_complete",
+    provider: "runway",
+    eventType: "generation.completed",
+    externalEventId: "evt_runway_123",
+    signatureValid: true,
+    processed: true,
+    createdAt: "2026-07-07T10:31:00.000Z"
+  },
+  {
+    id: "webhook_meta_token",
+    provider: "instagram",
+    eventType: "token.invalidated",
+    externalEventId: "evt_meta_456",
+    signatureValid: true,
+    processed: false,
+    createdAt: "2026-07-07T11:20:00.000Z"
+  },
+  {
+    id: "webhook_unknown_signature",
+    provider: "kling",
+    eventType: "generation.failed",
+    externalEventId: "evt_kling_789",
+    signatureValid: false,
+    processed: false,
+    createdAt: "2026-07-07T11:45:00.000Z"
   }
 ];
 

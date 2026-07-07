@@ -1,4 +1,5 @@
 import type { ContentIdea, ContentProject, SocialAccount, SocialPlatform } from "./domain";
+import type { VideoGenerationJob, VideoGenerationStatus } from "./integrations";
 import type { QualityScoreInput, QualityScoreResult } from "./scoring";
 
 export interface ProviderRequestContext {
@@ -21,14 +22,6 @@ export interface LlmProvider {
   summarizeTrends(context: ProviderRequestContext, query: string): Promise<string>;
 }
 
-export interface VideoGenerationJob {
-  id: string;
-  provider: string;
-  status: "queued" | "running" | "complete" | "failed" | "cancelled";
-  resultUrl?: string;
-  costEstimateCents: number;
-}
-
 export interface VideoProvider {
   name: string;
   generateTextToVideo(context: ProviderRequestContext, prompt: string): Promise<VideoGenerationJob>;
@@ -37,7 +30,7 @@ export interface VideoProvider {
     imageUrl: string,
     prompt: string
   ): Promise<VideoGenerationJob>;
-  getGenerationStatus(context: ProviderRequestContext, jobId: string): Promise<VideoGenerationJob>;
+  getGenerationStatus(context: ProviderRequestContext, jobId: string): Promise<VideoGenerationStatus>;
   cancelGeneration(context: ProviderRequestContext, jobId: string): Promise<void>;
   downloadResult(context: ProviderRequestContext, jobId: string): Promise<Blob>;
 }

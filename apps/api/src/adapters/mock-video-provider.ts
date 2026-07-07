@@ -1,11 +1,12 @@
 import type {
   ProviderRequestContext,
   VideoGenerationJob,
+  VideoGenerationStatus,
   VideoProvider
 } from "@creator-ai-studio/shared";
 
 export class MockVideoProvider implements VideoProvider {
-  readonly name = "mock-video";
+  readonly name = "mock";
 
   async generateTextToVideo(
     context: ProviderRequestContext,
@@ -25,13 +26,15 @@ export class MockVideoProvider implements VideoProvider {
   async getGenerationStatus(
     _context: ProviderRequestContext,
     jobId: string
-  ): Promise<VideoGenerationJob> {
+  ): Promise<VideoGenerationStatus> {
     return {
-      id: jobId,
+      externalJobId: jobId,
       provider: this.name,
-      status: "complete",
+      status: "succeeded",
+      progress: 100,
       resultUrl: "mock://generated/paris-house-blue-hour.mp4",
-      costEstimateCents: 0
+      estimatedCostCents: 0,
+      createdAt: new Date().toISOString()
     };
   }
 
@@ -45,10 +48,11 @@ export class MockVideoProvider implements VideoProvider {
 
   private createJob(traceId: string): VideoGenerationJob {
     return {
-      id: `video_job_${traceId}`,
+      externalJobId: `video_job_${traceId}`,
       provider: this.name,
       status: "queued",
-      costEstimateCents: 0
+      estimatedCostCents: 0,
+      createdAt: new Date().toISOString()
     };
   }
 }

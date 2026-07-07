@@ -16,6 +16,8 @@ Creator AI Studio is split into independent modules so the MVP can start small a
 
 `packages/shared/src/ai-engine.ts` owns AI agent definitions, structured-output schemas, prompt contracts, brand memory, and regression cases.
 
+`packages/shared/src/integrations.ts` owns provider adapter contracts, standardized errors, queues, webhooks, OAuth connection shape, retry and fallback policies, storage paths, monitoring alerts, and backend route metadata.
+
 ## Core modules
 
 - Brand Manager: workspace-scoped brand identity, tone, rules, platforms, and automation level
@@ -28,6 +30,9 @@ Creator AI Studio is split into independent modules so the MVP can start small a
 - Analytics Engine: platform metrics and post-level performance
 - Learning Engine: recommendations generated from performance data
 - AI Orchestrator: agent sequencing, structured-output gates, cost control, risk gates, logs, and human validation decisions
+- Provider Registry: provider availability, environment requirements, fallback order, and adapter capabilities
+- Queue System: async jobs for video, editing, publishing, analytics, learning, and cleanup
+- Webhook Handler: signature verification, idempotence, raw event storage, and next-job triggering
 
 ## Safety defaults
 

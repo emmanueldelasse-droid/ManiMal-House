@@ -39,3 +39,16 @@ learning_job
 ## Human review rule
 
 The first implementation should only produce drafts and exports. Publication requires explicit editor approval.
+
+## Job response rule
+
+Routes that start long-running work should create a queue job and return:
+
+```json
+{
+  "jobId": "job_123",
+  "status": "queued"
+}
+```
+
+This applies to video generation, voice generation, editing, publishing, analytics sync, and learning jobs.

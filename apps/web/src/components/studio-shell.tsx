@@ -32,6 +32,7 @@ import {
   Music2,
   Pencil,
   Play,
+  PlugZap,
   Plus,
   RefreshCw,
   Save,
@@ -71,6 +72,14 @@ import {
   dashboardTasks,
   ideas,
   initialQualityInput,
+  integrationBackendRoutes,
+  integrationEnvRequirements,
+  integrationJobs,
+  integrationMonitoringAlerts,
+  integrationProviders,
+  integrationQueues,
+  integrationRoadmap,
+  integrationSequencesData,
   learnings,
   musicTracks,
   onboardingSteps,
@@ -79,11 +88,14 @@ import {
   project,
   publicationItems,
   regressionCases,
+  retryPolicy,
   socialAccounts,
   studioAssets,
   topStats,
   validationChecklist,
+  videoFallbackPolicy,
   videoLibrary,
+  webhookEvents,
   workflow,
   type ContentLifecycleStatus,
   type StudioPage,
@@ -106,6 +118,7 @@ const desktopNavigation: Array<{ page: StudioPage; label: string; icon: React.El
   { page: "learnings", label: "Apprentissages IA", icon: Brain },
   { page: "costs", label: "Coûts", icon: WalletCards },
   { page: "social", label: "Connexions sociales", icon: ShieldCheck },
+  { page: "integrations", label: "Intégrations", icon: PlugZap },
   { page: "settings", label: "Réglages", icon: Settings }
 ];
 
@@ -274,6 +287,7 @@ export function StudioShell() {
             {activePage === "learnings" && <LearningsScreen />}
             {activePage === "costs" && <CostsScreen />}
             {activePage === "social" && <SocialScreen />}
+            {activePage === "integrations" && <IntegrationsScreen />}
             {activePage === "settings" && (
               <SettingsScreen
                 approvalLocked={approvalLocked}
@@ -1589,6 +1603,188 @@ function SocialScreen() {
   );
 }
 
+function IntegrationsScreen() {
+  const configuredProviders = integrationProviders.filter((provider) => provider.configured).length;
+  const triggeredAlerts = integrationMonitoringAlerts.filter((alert) => alert.status === "triggered").length;
+  const requiredProductionEnv = integrationEnvRequirements.filter((env) => env.requiredIn.includes("production"));
+
+  return (
+    <ScreenFrame
+      action={<button className="btn-primary" type="button">Tester les connexions</button>}
+      eyebrow="Adapters, queues, webhooks et fallbacks"
+      title="Intégrations techniques"
+    >
+      <MetricGrid
+        stats={[
+          { label: "Providers", value: `${integrationProviders.length}`, detail: `${configuredProviders} configurés` },
+          { label: "Queues", value: `${integrationQueues.length}`, detail: "jobs longs isolés" },
+          { label: "Webhooks", value: `${webhookEvents.length}`, detail: "idempotence active" },
+          { label: "Env prod", value: `${requiredProductionEnv.length}`, detail: "variables suivies" },
+          { label: "Alertes", value: `${triggeredAlerts}`, detail: "à traiter" }
+        ]}
+      />
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.9fr]">
+        <Panel title="Roadmap d'intégration" eyebrow="Ne pas se perdre">
+          <div className="grid gap-3 md:grid-cols-2">
+            {integrationRoadmap.map((phase) => (
+              <div key={phase.phase} className="rounded-lg border border-line bg-night p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">Phase {phase.phase}: {phase.name}</p>
+                  <span className="rounded-md bg-gold px-2 py-1 text-xs font-semibold text-night">
+                    {phase.providers.length}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-smoke">{phase.goal}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {phase.providers.map((provider) => (
+                    <Tag key={provider}>{provider}</Tag>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Politiques" eyebrow="Retry et fallback">
+          <div className="space-y-3">
+            <InfoLine label="Retry max" value={`${retryPolicy.maxAttempts} tentatives`} />
+            <InfoLine label="Backoff" value={`${retryPolicy.backoff} ${retryPolicy.baseDelayMs}-${retryPolicy.maxDelayMs} ms`} />
+            <InfoLine label="Retry catégories" value={retryPolicy.retryableCategories.join(", ")} />
+            <InfoLine label="Fallback vidéo" value={videoFallbackPolicy.order.join(" → ")} />
+            <InfoLine label="Validation fallback" value="obligatoire si coût augmente ou qualité baisse" />
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.9fr]">
+        <Panel title="Provider registry" eyebrow="Adapters standardisés">
+          <DataTable
+            columns={["Provider", "Type", "Phase", "Statut", "Env", "Supports"]}
+            rows={integrationProviders.map((provider) => [
+              provider.provider,
+              provider.kind,
+              provider.phase,
+              <IntegrationStatusBadge key="status" status={provider.status} />,
+              provider.requiredEnv.length ? provider.requiredEnv.join(", ") : "-",
+              provider.supports.join(", ")
+            ])}
+          />
+        </Panel>
+
+        <Panel title="Monitoring" eyebrow="Alertes MVP">
+          <div className="space-y-3">
+            {integrationMonitoringAlerts.map((alert) => (
+              <div key={alert.id} className="rounded-lg border border-line bg-night p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-sm font-semibold">{alert.label}</p>
+                  <span
+                    className={clsx(
+                      "badge",
+                      alert.status === "ok" && "border-mint/40 bg-mint/12 text-mint",
+                      alert.status === "triggered" && "border-rose/40 bg-rose/12 text-rose",
+                      alert.status === "muted" && "border-line bg-line/50 text-smoke"
+                    )}
+                  >
+                    {alert.status}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-smoke">{alert.metric} · {alert.threshold}</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[0.9fr_1fr]">
+        <Panel title="Queues et jobs" eyebrow="Aucun job long dans une requête HTTP">
+          <div className="grid gap-3 md:grid-cols-2">
+            {integrationJobs.map((job) => (
+              <div key={job.id} className="rounded-lg border border-line bg-night p-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold">{job.queue}</p>
+                    <p className="mt-1 text-xs text-smoke">{job.provider} · {job.attempts}</p>
+                  </div>
+                  <AgentStatusBadge status={job.status} />
+                </div>
+                <div className="mt-3 h-2 rounded-full bg-ink">
+                  <div className="h-full rounded-full bg-mint" style={{ width: `${job.progress}%` }} />
+                </div>
+                <p className="mt-3 text-sm leading-6 text-smoke">{job.detail}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {integrationQueues.map((queue) => (
+              <Tag key={queue.name}>{queue.name}</Tag>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Webhooks" eyebrow="Signature et idempotence">
+          <DataTable
+            columns={["Provider", "Event", "External ID", "Signature", "Processed", "Created"]}
+            rows={webhookEvents.map((event) => [
+              event.provider,
+              event.eventType,
+              event.externalEventId,
+              event.signatureValid ? "valid" : "invalid",
+              event.processed ? "yes" : "no",
+              event.createdAt.slice(0, 16)
+            ])}
+          />
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.8fr]">
+        <Panel title="Routes backend" eyebrow="Les routes longues créent un job">
+          <DataTable
+            columns={["Méthode", "Route", "Job", "Queue"]}
+            rows={integrationBackendRoutes.map((route) => [
+              route.method,
+              route.path,
+              route.createsJob ? "queued" : "direct",
+              route.queue ?? "-"
+            ])}
+          />
+        </Panel>
+
+        <Panel title="Variables d'environnement" eyebrow="Secrets côté serveur">
+          <div className="space-y-2">
+            {integrationEnvRequirements.slice(0, 12).map((env) => (
+              <div key={env.name} className="flex items-center justify-between gap-3 rounded-lg border border-line bg-night p-3">
+                <div>
+                  <p className="text-sm font-semibold">{env.name}</p>
+                  <p className="text-xs text-smoke">{env.purpose}</p>
+                </div>
+                <span className={clsx("badge", env.secret ? "border-rose/40 bg-rose/10 text-rose" : "border-mint/40 bg-mint/10 text-mint")}>
+                  {env.secret ? "secret" : "public"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <Panel className="mt-4" title="Séquences critiques" eyebrow="De l'action utilisateur au résultat">
+        <div className="grid gap-4 xl:grid-cols-4">
+          {integrationSequencesData.map((sequence) => (
+            <div key={sequence.id} className="rounded-lg border border-line bg-night p-4">
+              <p className="text-sm font-semibold">{sequence.label}</p>
+              <ol className="mt-3 space-y-2 text-xs leading-5 text-smoke">
+                {sequence.steps.slice(0, 7).map((step, index) => (
+                  <li key={step}>{index + 1}. {step}</li>
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      </Panel>
+    </ScreenFrame>
+  );
+}
+
 function SettingsScreen({
   approvalLocked,
   automationLevel,
@@ -1841,6 +2037,23 @@ function DecisionBadge({ status }: { status: string }) {
         status === "needs_human_validation" && "border-gold/40 bg-gold/12 text-gold",
         status === "blocked" && "border-rose/40 bg-rose/12 text-rose",
         status === "retry" && "border-[#8fd3ff]/40 bg-[#8fd3ff]/12 text-[#8fd3ff]"
+      )}
+    >
+      {status.replaceAll("_", " ")}
+    </span>
+  );
+}
+
+function IntegrationStatusBadge({ status }: { status: string }) {
+  return (
+    <span
+      className={clsx(
+        "badge capitalize",
+        status === "available" && "border-mint/40 bg-mint/12 text-mint",
+        status === "mock_only" && "border-[#8fd3ff]/40 bg-[#8fd3ff]/12 text-[#8fd3ff]",
+        status === "not_configured" && "border-line bg-line/50 text-smoke",
+        status === "degraded" && "border-gold/40 bg-gold/12 text-gold",
+        status === "unavailable" && "border-rose/40 bg-rose/12 text-rose"
       )}
     >
       {status.replaceAll("_", " ")}

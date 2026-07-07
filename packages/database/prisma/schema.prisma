@@ -57,6 +57,17 @@ enum AssetType {
   FINAL_EXPORT
 }
 
+enum JobStatus {
+  PENDING
+  QUEUED
+  RUNNING
+  WAITING_PROVIDER
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  RETRYING
+}
+
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
@@ -83,6 +94,8 @@ model Workspace {
   musicTracks MusicTrack[]
   costs       CostEntry[]
   auditLogs   AuditLog[]
+  oauthConnections OAuthConnection[]
+  jobs        Job[]
 }
 
 model Brand {
@@ -110,6 +123,8 @@ model Brand {
   contentProjects ContentProject[]
   learnings       Learning[]
   costs           CostEntry[]
+  oauthConnections OAuthConnection[]
+  jobs            Job[]
 
   @@unique([workspaceId, slug])
 }
@@ -172,6 +187,7 @@ model ContentProject {
   assets       Asset[]
   publications Publication[]
   costs        CostEntry[]
+  jobs         Job[]
 }
 
 model Asset {
@@ -259,15 +275,84 @@ model CostEntry {
   workspaceId       String
   brandId           String?
   contentProjectId  String?
+  jobId             String?
   provider          String
   operationType     String
   estimatedCost     Decimal?
   actualCost        Decimal?
+  currency          String   @default("USD")
   createdAt         DateTime @default(now())
 
   workspace      Workspace       @relation(fields: [workspaceId], references: [id])
   brand          Brand?          @relation(fields: [brandId], references: [id])
   contentProject ContentProject? @relation(fields: [contentProjectId], references: [id])
+  job            Job?            @relation(fields: [jobId], references: [id])
+}
+
+model OAuthConnection {
+  id                    String         @id @default(cuid())
+  workspaceId           String
+  brandId               String
+  platform              SocialPlatform
+  accountName           String
+  platformAccountId     String
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  scopes                Json
+  status                String
+  lastError             String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  brand     Brand     @relation(fields: [brandId], references: [id])
+
+  @@index([workspaceId, platform])
+  @@index([brandId, platform])
+}
+
+model Job {
+  id               String    @id @default(cuid())
+  workspaceId      String
+  brandId          String?
+  contentProjectId String?
+  type             String
+  provider         String?
+  status           JobStatus @default(PENDING)
+  progress         Int       @default(0)
+  input            Json
+  output           Json?
+  error            Json?
+  attempts         Int       @default(0)
+  maxAttempts      Int       @default(3)
+  startedAt        DateTime?
+  finishedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
+  brand          Brand?          @relation(fields: [brandId], references: [id])
+  contentProject ContentProject? @relation(fields: [contentProjectId], references: [id])
+  costs          CostEntry[]
+
+  @@index([workspaceId, status])
+  @@index([contentProjectId, type])
+}
+
+model WebhookEvent {
+  id              String   @id @default(cuid())
+  provider        String
+  eventType       String
+  externalEventId String
+  payload         Json
+  signatureValid  Boolean  @default(false)
+  processed       Boolean  @default(false)
+  processedAt     DateTime?
+  createdAt       DateTime @default(now())
+
+  @@unique([provider, externalEventId])
+  @@index([provider, eventType])
+  @@index([processed])
 }
 
 model AuditLog {

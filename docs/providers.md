@@ -2,6 +2,8 @@
 
 Provider integrations must implement the interfaces in `packages/shared/src/providers.ts`.
 
+Tome 4 adds broader integration contracts in `packages/shared/src/integrations.ts` for storage, image, voice, editing, publishing, analytics, search, music rights, queues, webhooks, retry, fallback, and standardized provider errors.
+
 ## LLM
 
 OpenAI should be the first real `LlmProvider`.
@@ -39,6 +41,14 @@ Implement one publishing provider per platform:
 - `YouTubePublishingProvider`
 
 Publishing providers must validate permissions, token expiry, account status, publication status, retry behavior, and metrics collection.
+
+## Queue rule
+
+Provider calls that can take time must run through a job queue. HTTP routes create jobs and return `{ jobId, status: "queued" }` instead of blocking the request.
+
+## Fallback rule
+
+Fallback is allowed only when the policy permits it. If fallback increases cost or lowers quality, ask for human validation before launching it.
 
 ## Factual claims
 
