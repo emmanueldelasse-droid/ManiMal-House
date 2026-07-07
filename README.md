@@ -9,7 +9,7 @@ The first demo brand is Paris House: house music, Paris nightlife, rooftops, pre
 - Next.js studio interface in `apps/web`
 - TypeScript API skeleton in `apps/api`
 - Shared domain types and scoring logic in `packages/shared`
-- Product and architecture notes in `docs`
+- Product, architecture, workflow, and UX notes in `docs`
 - Provider adapter contracts for LLM, video, voice, and publishing workflows
 
 ## Requirements
@@ -48,5 +48,9 @@ This repository starts with the MVP phase:
 - upload or attach manual assets later
 - score content before publication
 - keep human review mandatory
+
+## UX prototype
+
+The web app now includes a navigable MVP product prototype covering onboarding, dashboard, brands, identity, calendar, ideas, studio, video library, music library, publications, analytics, learnings, costs, social connections, and settings. See `docs/ux-ui.md`.
 
 Automatic social publishing, payments, full multi-user SaaS workflows, and autopilot are intentionally out of scope for the first slice.
