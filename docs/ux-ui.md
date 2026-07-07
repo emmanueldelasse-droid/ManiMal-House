@@ -50,6 +50,8 @@ The top bar always exposes workspace, active brand, budget status, create action
 - AI learnings with actions
 - Costs with provider detail and budget guardrails
 - Social connections with OAuth status and permission explanation
+- Integrations with provider registry, queues, webhooks, env requirements, and fallback policies
+- Operations with workflows, gates, tests, deployment, roadmap, and monetization
 - Settings with masked API keys and automation defaults
 
 ## Studio behavior

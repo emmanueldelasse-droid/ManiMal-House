@@ -52,3 +52,13 @@ Routes that start long-running work should create a queue job and return:
 ```
 
 This applies to video generation, voice generation, editing, publishing, analytics sync, and learning jobs.
+
+## Operational gates
+
+The API skeleton exposes workflow gates in `apps/api/src/modules/workflow-gates.ts`.
+
+Use `evaluatePublishingGate` before every automatic publication attempt.
+
+Use `evaluateManualExportGate` before marking an MP4 as final-export ready.
+
+Use `createAnalyticsSyncPlan` after a successful publication to schedule the 1h, 6h, 24h, 72h, and 7d analytics pulls.

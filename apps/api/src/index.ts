@@ -6,4 +6,5 @@ export { validateEnvironment } from "./modules/env-validation";
 export { createIntegrationJob, queueExists, shouldRetryJob, transitionJob } from "./modules/job-system";
 export { AutoVideoProviderSelector, ProviderRegistry } from "./modules/provider-registry";
 export { normalizeWebhookEvent, processWebhookEvent, verifyWebhookSignature } from "./modules/webhook-handler";
+export { createAnalyticsSyncPlan, evaluateManualExportGate, evaluatePublishingGate } from "./modules/workflow-gates";
 export { createDailyCyclePlan } from "./workers/daily-cycle";

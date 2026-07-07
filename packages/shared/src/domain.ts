@@ -12,9 +12,12 @@ export type SocialPlatform = (typeof socialPlatforms)[number];
 export const contentStatuses = [
   "idea",
   "scripted",
+  "storyboard_ready",
   "assets_pending",
   "assets_generated",
+  "editing",
   "edited",
+  "preview_ready",
   "quality_checked",
   "needs_review",
   "approved",

@@ -35,6 +35,7 @@ import {
   PlugZap,
   Plus,
   RefreshCw,
+  Rocket,
   Save,
   Search,
   Send,
@@ -83,6 +84,22 @@ import {
   learnings,
   musicTracks,
   onboardingSteps,
+  operationsAnalyticsPlan,
+  operationsBackupRetention,
+  operationsDeploymentEnvironments,
+  operationsFfmpegChecks,
+  operationsHumanChecklist,
+  operationsLaunchStrategy,
+  operationsLearningConfidence,
+  operationsMonetizationIdeas,
+  operationsMonitoringSignals,
+  operationsPricingPlans,
+  operationsPublicationReadiness,
+  operationsRiskRegister,
+  operationsRoadmap,
+  operationsSprints,
+  operationsTestSuites,
+  operationsWorkflows,
   performanceStats,
   previewImage,
   project,
@@ -119,6 +136,7 @@ const desktopNavigation: Array<{ page: StudioPage; label: string; icon: React.El
   { page: "costs", label: "Coûts", icon: WalletCards },
   { page: "social", label: "Connexions sociales", icon: ShieldCheck },
   { page: "integrations", label: "Intégrations", icon: PlugZap },
+  { page: "operations", label: "Mise en production", icon: Rocket },
   { page: "settings", label: "Réglages", icon: Settings }
 ];
 
@@ -288,6 +306,7 @@ export function StudioShell() {
             {activePage === "costs" && <CostsScreen />}
             {activePage === "social" && <SocialScreen />}
             {activePage === "integrations" && <IntegrationsScreen />}
+            {activePage === "operations" && <OperationsScreen />}
             {activePage === "settings" && (
               <SettingsScreen
                 approvalLocked={approvalLocked}
@@ -1780,6 +1799,206 @@ function IntegrationsScreen() {
             </div>
           ))}
         </div>
+      </Panel>
+    </ScreenFrame>
+  );
+}
+
+function OperationsScreen() {
+  const phaseOne = operationsRoadmap.find((phase) => phase.phase === 1) ?? operationsRoadmap[0]!;
+  const stabilizationSprint =
+    operationsSprints.find((sprint) => sprint.sprint === 10) ?? operationsSprints[operationsSprints.length - 1]!;
+  const blockingCount = operationsPublicationReadiness.blockers.length;
+
+  return (
+    <ScreenFrame
+      action={<button className="btn-primary" type="button">Préparer le MVP export</button>}
+      eyebrow="Workflows, tests, déploiement et business"
+      title="Mise en production"
+    >
+      <MetricGrid
+        stats={[
+          { label: "Workflows", value: `${operationsWorkflows.length}`, detail: "parcours complets" },
+          { label: "Tests", value: `${operationsTestSuites.length}`, detail: "couches obligatoires" },
+          { label: "FFmpeg", value: `${operationsFfmpegChecks.length}`, detail: "contrôles export" },
+          { label: "Roadmap", value: `${operationsRoadmap.length}`, detail: "phases produit" },
+          { label: "Gate publish", value: `${blockingCount}`, detail: operationsPublicationReadiness.nextAction.replaceAll("_", " ") }
+        ]}
+      />
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.85fr]">
+        <Panel title="Workflows complets" eyebrow="Paris House d'abord">
+          <DataTable
+            columns={["Workflow", "Owner", "Déclencheur", "Sorties", "Critère"]}
+            rows={operationsWorkflows.map((item) => [
+              item.title,
+              item.owner,
+              item.trigger,
+              item.outputs.slice(0, 4).join(", "),
+              item.successCriterion
+            ])}
+          />
+        </Panel>
+
+        <Panel title="Gate publication" eyebrow="Export manuel prioritaire">
+          <div className="space-y-3">
+            <InfoLine label="Score minimum" value={`${operationsPublicationReadiness.minimumScore}`} />
+            <InfoLine label="Résultat" value={operationsPublicationReadiness.ok ? "prêt à publier" : operationsPublicationReadiness.nextAction.replaceAll("_", " ")} />
+            <InfoLine label="Confiance learning" value={operationsLearningConfidence} />
+            <div>
+              <p className="mb-2 text-xs uppercase text-smoke">Blocages actifs</p>
+              <div className="space-y-2">
+                {operationsPublicationReadiness.blockers.map((blocker) => (
+                  <div key={blocker.code} className="rounded-lg border border-rose/35 bg-rose/10 p-3">
+                    <p className="text-sm font-semibold text-rose">{blocker.code}</p>
+                    <p className="mt-1 text-xs leading-5 text-smoke">{blocker.userMessage}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[0.8fr_1fr]">
+        <Panel title="Validation humaine" eyebrow="Checklist avant sortie">
+          <div className="grid gap-2 md:grid-cols-2">
+            {operationsHumanChecklist.map((item) => (
+              <div key={item} className="flex items-center gap-2 rounded-lg border border-line bg-night p-3 text-sm text-smoke">
+                <Check size={15} className="text-mint" />
+                <span>{item}</span>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <Panel title="Contrôles FFmpeg" eyebrow="MP4 vertical exploitable">
+          <DataTable
+            columns={["Contrôle", "Obligatoire", "Erreur"]}
+            rows={operationsFfmpegChecks.map((check) => [
+              check.label,
+              check.required ? "oui" : "non",
+              check.failureCategory
+            ])}
+          />
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.8fr]">
+        <Panel title="Tests indispensables" eyebrow="Stabiliser avant d'automatiser">
+          <DataTable
+            columns={["Couche", "Suite", "Cas", "Critère"]}
+            rows={operationsTestSuites.map((suite) => [
+              suite.layer,
+              suite.title,
+              suite.requiredCases.slice(0, 6).join(", "),
+              suite.passCriterion
+            ])}
+          />
+        </Panel>
+
+        <Panel title="Déploiement MVP" eyebrow="Local, staging, production">
+          <DataTable
+            columns={["Env", "Publication", "Stockage", "Monitoring"]}
+            rows={operationsDeploymentEnvironments.map((env) => [
+              env.id,
+              env.publicationMode.replaceAll("_", " "),
+              env.storage,
+              env.monitoring.join(", ")
+            ])}
+          />
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[0.9fr_1fr]">
+        <Panel title="Monitoring et rétention" eyebrow="Comprendre chaque décision">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div>
+              <p className="mb-3 text-sm font-semibold">Signaux</p>
+              <TokenList tokens={operationsMonitoringSignals.slice(0, 12)} />
+            </div>
+            <div>
+              <p className="mb-3 text-sm font-semibold">Backups</p>
+              <div className="space-y-2">
+                {operationsBackupRetention.map((rule) => (
+                  <InfoLine key={rule.target} label={rule.target} value={rule.rule} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </Panel>
+
+        <Panel title="Analytics plan" eyebrow="Ne jamais confondre null et zéro">
+          <DataTable
+            columns={["Plateforme", "Après", "Planifié"]}
+            rows={operationsAnalyticsPlan.map((job) => [
+              job.platform,
+              `${job.hoursAfterPublication}h`,
+              job.scheduledAt.slice(0, 16)
+            ])}
+          />
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_0.9fr]">
+        <Panel title="Roadmap produit" eyebrow={`Phase active: ${phaseOne.title}`}>
+          <DataTable
+            columns={["Phase", "Objectif", "Livrables", "Succès"]}
+            rows={operationsRoadmap.map((phase) => [
+              `${phase.phase} · ${phase.title}`,
+              phase.goal,
+              phase.deliverables.slice(0, 5).join(", "),
+              phase.successCriterion
+            ])}
+          />
+        </Panel>
+
+        <Panel title="Ordre réel de développement" eyebrow={stabilizationSprint.title}>
+          <DataTable
+            columns={["Sprint", "Titre", "Livrables"]}
+            rows={operationsSprints.map((sprint) => [
+              sprint.sprint,
+              sprint.title,
+              sprint.deliverables.slice(0, 5).join(", ")
+            ])}
+          />
+        </Panel>
+      </div>
+
+      <div className="mt-4 grid gap-4 xl:grid-cols-[0.9fr_1fr]">
+        <Panel title="Monétisation SaaS" eyebrow="Après preuve d'usage">
+          <DataTable
+            columns={["Plan", "Cible", "Inclus"]}
+            rows={operationsPricingPlans.map((plan) => [
+              plan.name,
+              plan.target,
+              plan.includes.join(", ")
+            ])}
+          />
+        </Panel>
+
+        <Panel title="Paris House business" eyebrow="Marque média d'abord">
+          <TokenList tokens={operationsMonetizationIdeas} />
+          <div className="mt-4 space-y-3">
+            {operationsLaunchStrategy.map((step) => (
+              <div key={step.id} className="rounded-lg border border-line bg-night p-3">
+                <p className="text-sm font-semibold">{step.title}</p>
+                <p className="mt-1 text-xs leading-5 text-smoke">{step.objective}</p>
+                <p className="mt-2 text-xs text-gold">{step.automationRule}</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      </div>
+
+      <Panel className="mt-4" title="Risques principaux" eyebrow="Ce qu'il faut absolument éviter">
+        <DataTable
+          columns={["Risque", "Mitigation"]}
+          rows={operationsRiskRegister.map((item) => [
+            item.risk,
+            item.mitigation.join(", ")
+          ])}
+        />
       </Panel>
     </ScreenFrame>
   );

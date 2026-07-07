@@ -5,18 +5,34 @@ import {
   aiStructuredOutputSchemas,
   aiWorkflowStages,
   backendRoutes,
+  backupRetentionRules,
+  buildAnalyticsCollectionPlan,
   calculateQualityScore,
   dailyWorkflow,
   defaultRetryPolicy,
   defaultVideoFallbackPolicy,
+  deploymentEnvironments,
+  developmentSprints,
+  evaluatePublicationReadiness,
+  ffmpegQualityChecks,
+  getLearningConfidence,
+  humanValidationChecklist,
   envRequirements,
   integrationPhases,
   integrationSequences,
+  launchStrategy,
+  mediaBrandMonetizationIdeas,
   monitoringAlerts,
+  monitoringSignals,
+  operationalWorkflows,
   parisHouseBrandMemory,
   parisHouseBrand,
+  pricingPlans,
+  productRoadmap,
   providerRegistry,
   queueDefinitions,
+  requiredTestSuites,
+  riskRegister,
   sampleIdeas,
   sampleProject,
   type AiAgentRunLog,
@@ -194,6 +210,7 @@ export type StudioPage =
   | "costs"
   | "social"
   | "integrations"
+  | "operations"
   | "settings";
 
 export type StudioStep =
@@ -729,6 +746,43 @@ export const webhookEvents = [
     createdAt: "2026-07-07T11:45:00.000Z"
   }
 ];
+
+export const operationsWorkflows = operationalWorkflows;
+export const operationsFfmpegChecks = ffmpegQualityChecks;
+export const operationsHumanChecklist = humanValidationChecklist;
+export const operationsTestSuites = requiredTestSuites;
+export const operationsDeploymentEnvironments = deploymentEnvironments;
+export const operationsMonitoringSignals = monitoringSignals;
+export const operationsBackupRetention = backupRetentionRules;
+export const operationsRoadmap = productRoadmap;
+export const operationsPricingPlans = pricingPlans;
+export const operationsLaunchStrategy = launchStrategy;
+export const operationsMonetizationIdeas = mediaBrandMonetizationIdeas;
+export const operationsRiskRegister = riskRegister;
+export const operationsSprints = developmentSprints;
+export const operationsLearningConfidence = getLearningConfidence(8);
+
+export const operationsPublicationReadiness = evaluatePublicationReadiness({
+  status: "approved",
+  globalScore: initialQuality.global,
+  humanApproved: true,
+  musicApproved: true,
+  captionReady: true,
+  hashtagsReady: true,
+  videoFormatValid: true,
+  socialAccountConnected: false,
+  tokenValid: false,
+  permissionsValid: false,
+  budgetAvailable: true,
+  copyrightRiskBlocking: false,
+  factualRiskBlocking: false
+});
+
+export const operationsAnalyticsPlan = buildAnalyticsCollectionPlan(
+  "publication_blue_hour_rooftop",
+  "instagram",
+  "2026-07-07T18:30:00.000Z"
+);
 
 export const onboardingSteps = [
   {
