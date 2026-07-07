@@ -1,0 +1,285 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  EDITOR
+  VIEWER
+  AUTOMATION_AGENT
+}
+
+enum BrandStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  FACEBOOK
+  SNAPCHAT
+  PINTEREST
+}
+
+enum ContentStatus {
+  IDEA
+  SCRIPTED
+  ASSETS_PENDING
+  ASSETS_GENERATED
+  EDITED
+  QUALITY_CHECKED
+  NEEDS_REVIEW
+  APPROVED
+  SCHEDULED
+  PUBLISHED
+  FAILED
+  ARCHIVED
+}
+
+enum AssetType {
+  RAW_VIDEO
+  GENERATED_VIDEO
+  GENERATED_IMAGE
+  VOICEOVER
+  MUSIC
+  SUBTITLE_FILE
+  THUMBNAIL
+  FINAL_EXPORT
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedWorkspaces Workspace[]
+  auditLogs       AuditLog[]
+}
+
+model Workspace {
+  id                 String   @id @default(cuid())
+  ownerId            String
+  name               String
+  plan               String   @default("internal")
+  monthlyBudgetCents Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  owner       User         @relation(fields: [ownerId], references: [id])
+  brands      Brand[]
+  musicTracks MusicTrack[]
+  costs       CostEntry[]
+  auditLogs   AuditLog[]
+}
+
+model Brand {
+  id               String      @id @default(cuid())
+  workspaceId      String
+  name             String
+  slug             String
+  niche            String
+  language         String
+  country          String
+  city             String
+  tone             Json
+  visualIdentity   Json
+  editorialRules   Json
+  forbiddenTopics  Json
+  postingFrequency String
+  automationLevel  Int         @default(1)
+  status           BrandStatus @default(DRAFT)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  workspace       Workspace        @relation(fields: [workspaceId], references: [id])
+  socialAccounts  SocialAccount[]
+  contentIdeas    ContentIdea[]
+  contentProjects ContentProject[]
+  learnings       Learning[]
+  costs           CostEntry[]
+
+  @@unique([workspaceId, slug])
+}
+
+model SocialAccount {
+  id                    String         @id @default(cuid())
+  brandId               String
+  platform              SocialPlatform
+  accountName           String
+  accountId             String
+  accessTokenEncrypted  String?
+  refreshTokenEncrypted String?
+  tokenExpiresAt        DateTime?
+  permissions           Json
+  status                String
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+
+  brand        Brand         @relation(fields: [brandId], references: [id])
+  publications Publication[]
+}
+
+model ContentIdea {
+  id                       String   @id @default(cuid())
+  brandId                  String
+  title                    String
+  concept                  String
+  hook                     String
+  angle                    String
+  platformTarget           String
+  estimatedDurationSeconds Int
+  visualStyle              String
+  musicStyle               String
+  potentialScore           Int
+  riskScore                Int
+  selected                 Boolean  @default(false)
+  createdAt                DateTime @default(now())
+
+  brand    Brand            @relation(fields: [brandId], references: [id])
+  projects ContentProject[]
+}
+
+model ContentProject {
+  id          String        @id @default(cuid())
+  brandId     String
+  ideaId      String?
+  status      ContentStatus @default(IDEA)
+  title       String
+  script      String?
+  storyboard  Json?
+  caption     String?
+  hashtags    Json?
+  cta         String?
+  globalScore Int?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  brand        Brand         @relation(fields: [brandId], references: [id])
+  idea         ContentIdea?  @relation(fields: [ideaId], references: [id])
+  assets       Asset[]
+  publications Publication[]
+  costs        CostEntry[]
+}
+
+model Asset {
+  id               String    @id @default(cuid())
+  contentProjectId String
+  type             AssetType
+  provider         String
+  url              String?
+  storagePath      String?
+  metadata         Json
+  costEstimate     Decimal?
+  status           String
+  createdAt        DateTime  @default(now())
+
+  contentProject ContentProject @relation(fields: [contentProjectId], references: [id])
+}
+
+model MusicTrack {
+  id                 String   @id @default(cuid())
+  workspaceId        String
+  title              String
+  artist             String?
+  source             String
+  licenseType        String
+  licenseDocumentUrl String?
+  bpm                Int?
+  mood               String?
+  energyLevel        Int?
+  fileUrl            String
+  approvedForUse     Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+}
+
+model Publication {
+  id               String         @id @default(cuid())
+  contentProjectId String
+  platform         SocialPlatform
+  socialAccountId  String?
+  scheduledAt      DateTime?
+  publishedAt      DateTime?
+  platformPostId   String?
+  status           String
+  errorMessage     String?
+  createdAt        DateTime       @default(now())
+
+  contentProject ContentProject @relation(fields: [contentProjectId], references: [id])
+  socialAccount  SocialAccount? @relation(fields: [socialAccountId], references: [id])
+  metrics        Metric[]
+}
+
+model Metric {
+  id              String   @id @default(cuid())
+  publicationId   String
+  views           Int      @default(0)
+  likes           Int      @default(0)
+  comments        Int      @default(0)
+  shares          Int      @default(0)
+  saves           Int      @default(0)
+  followersGained Int      @default(0)
+  watchTime       Decimal?
+  completionRate  Decimal?
+  clicks          Int      @default(0)
+  collectedAt     DateTime @default(now())
+
+  publication Publication @relation(fields: [publicationId], references: [id])
+}
+
+model Learning {
+  id              String   @id @default(cuid())
+  brandId         String
+  insightType     String
+  insight         String
+  confidenceScore Int
+  supportingData  Json
+  recommendation  String
+  createdAt       DateTime @default(now())
+
+  brand Brand @relation(fields: [brandId], references: [id])
+}
+
+model CostEntry {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  brandId           String?
+  contentProjectId  String?
+  provider          String
+  operationType     String
+  estimatedCost     Decimal?
+  actualCost        Decimal?
+  createdAt         DateTime @default(now())
+
+  workspace      Workspace       @relation(fields: [workspaceId], references: [id])
+  brand          Brand?          @relation(fields: [brandId], references: [id])
+  contentProject ContentProject? @relation(fields: [contentProjectId], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  workspaceId String
+  userId     String?
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json
+  createdAt  DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id])
+  user      User?     @relation(fields: [userId], references: [id])
+}
